@@ -14,7 +14,7 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: ' '
+          MYSQL_ROOT_PASSWORD: ''
         ports:
           - 3306:3306
     steps:
@@ -42,9 +42,9 @@ jobs:
       - name: Install Composer dependencies
         run: |
           composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
-      # - name: Install NPM dependencies
-      #   run: |
-      #     npm install
+      - name: Install NPM dependencies
+        run: |
+          npm install
       #     GOOGLE_MAP_API_KEY=${{ secrets.GOOGLE_MAP_API_KEY }} npm run dev
       - name: Prepare database
         run: |
