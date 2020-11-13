@@ -26,10 +26,10 @@ class ListController extends AbstractController
                 'Tencent' => '$3.02 trillion USD',
                 'Oracle' => '$180.54 billion USD',
             ];
-            
+
             return $this->render('list/index.html.twig', [
                 'companies' => $companies,
-        ]);
+            ]);
         }
     }
 }
