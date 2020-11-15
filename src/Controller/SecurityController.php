@@ -2,31 +2,51 @@
 
 namespace App\Controller;
 
+use App\Entity\Customer;
+use App\Entity\Producer;
+use App\Entity\User;
+use App\Form\RegistrationType;
+use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoder;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
+/**
+ * Class SecurityController
+ * @package App\Controller
+ */
 class SecurityController extends AbstractController
 {
     /**
-     * @Route("/", name="app_login")
+     * @param string $role
+     * @param Request $request
+     * @return Response
+     * @Route("/registration/{role}", name="security_registration")
      */
-    public function login(AuthenticationUtils $authenticationUtils): Response
-    {
-        // get the login error if there is one
-        $error = $authenticationUtils->getLastAuthenticationError();
-        // last username entered by the user
-        $lastUsername = $authenticationUtils->getLastUsername();
+    public function registration(
+        string $role,
+        Request $request,
+        UserPasswordEncoderInterface $userPasswordEncoder
+    ): Response {
+        $user = Producer::ROLE === $role ? new Producer() : new Customer();
 
-        return $this->render('security/login.html.twig', ['last_username' => $lastUsername, 'error' => $error]);
-    }
+        $form = $this->createForm(RegistrationType::class, $user)->handleRequest($request);
 
-    /**
-     * @Route("/logout", name="app_logout")
-     */
-    public function logout()
-    {
-        throw new \Exception('This method can be blank - it will be intercepted by the logout key on your firewall');
+        if ($form->isSubmitted() && $form->isValid()) {
+            $user->setPassword(
+                $userPasswordEncoder->encodePassword($user, $user->getPlainPassword())
+            );
+            $this->getDoctrine()->getManager()->persist($user);
+            $this->getDoctrine()->getManager()->flush();
+            $this->addFlash("success", "Votre inscription a été effectuée avec succés");
+            return $this->redirectToRoute("index");
+        }
+
+        return $this->render("ui/security/registration.html.twig", [
+            "form" => $form->createView()
+        ]);
     }
 }
